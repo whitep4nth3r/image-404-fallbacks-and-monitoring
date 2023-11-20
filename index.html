@@ -89,6 +89,15 @@
       Read about capturing resource 404s on the Sentry docs.
     </a>
     <script>
+      // do this if you can't use onerror on img element tags
+      const images = document.querySelectorAll("img");
+
+      images.forEach((image) => {
+        image.addEventListener("error", (event) => {
+          image.src = "fallback.png";
+        });
+      });
+
       document.body.addEventListener(
         "error",
         (event) => {
