@@ -89,16 +89,12 @@
       Read about capturing resource 404s on the Sentry docs.
     </a>
     <script>
-      window.sentryOnLoad = function () {
-        window.Sentry.init({ replaysSessionSampleRate: 1.0 });
-      };
-
       document.body.addEventListener(
         "error",
         (event) => {
           if (!event.target) return;
           if (event.target.tagName === "IMG") {
-            Sentry.captureMessage(`Failed to load image: ${event.target.src}`, "warning");
+            Sentry.captureException(`Failed to load image: ${event.target.src}`, "warning");
           }
         },
         true, // useCapture - necessary for resource loading errors
