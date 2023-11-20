@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image 404 Fallbacks and Monitoring</title>
+    <link
+      href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQEAYAAABPYyMiAAAABmJLR0T///////8JWPfcAAAACXBIWXMAAABIAAAASABGyWs+AAAAF0lEQVRIx2NgGAWjYBSMglEwCkbBSAcACBAAAeaR9cIAAAAASUVORK5CYII="
+      rel="icon"
+      type="image/x-icon"
+    />
+    <script
+      src="https://js.sentry-cdn.com/069d510beb8ec736246214096a3e3cd0.min.js"
+      crossorigin="anonymous"
+    ></script>
+    <style>
+      body {
+        max-width: 600px;
+        margin: 0 auto 4rem auto;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+          Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Image 404 fallbacks and monitoring on the front end</h1>
+
+    <ol>
+      <li>
+        <h2>Broken image</h2>
+        <p>HTML img element, with a src attribute of an image URL that does not exist.</p>
+        <img
+          src="https://image/150/150"
+          alt="This image should exist, but alas it does not"
+          width="150"
+          height="150"
+        />
+      </li>
+      <li>
+        <h2>HTML solution</h2>
+        <p>
+          HTML object element, with a data attribute of an image URL that does not exist, which
+          falls back to the HTML img element provided inside the object element.
+        </p>
+        <object
+          type="image/png"
+          data="https://image/150/150"
+          width="150"
+          height="150"
+          aria-label="This image should exist, but alas it does not"
+        >
+          <img src="fallback.png" alt="Fallback image" width="150" height="150" />
+        </object>
+      </li>
+      <li>
+        <h2>Inline JavaScript solution</h2>
+        <p>
+          Use the onerror attribute to set a fallback image URL when an error is detected. The error
+          event is fired on an element when a resource failed to load, or can't be used.
+        </p>
+        <img
+          src="https://image/150/150"
+          alt="This image does not exist"
+          width="150"
+          height="150"
+          onerror="this.src='fallback.png';"
+        />
+      </li>
+    </ol>
+
+    <h2>Capturing image 404s in Sentry</h2>
+    <p>
+      Add the following JavaScript to your page to send image load failures to Sentry, by hooking
+      into the "error" event.
+    </p>
+    <pre>
+      <code>document.body.addEventListener(
+        "error",
+        (event) => {
+          if (!event.target) return;
+          if (event.target.tagName === "IMG") {
+            Sentry.captureMessage(`Failed to load image: ${event.target.src}`, "warning");
+          }
+        },
+        true, // useCapture - necessary for resource loading errors
+      );</code>
+    </pre>
+    <a href="https://docs.sentry.io/platforms/javascript/troubleshooting/#capturing-resource-404s">
+      Read about capturing resource 404s on the Sentry docs.
+    </a>
+    <script>
+      window.sentryOnLoad = function () {
+        window.Sentry.init({ replaysSessionSampleRate: 1.0 });
+      };
+
+      document.body.addEventListener(
+        "error",
+        (event) => {
+          if (!event.target) return;
+          if (event.target.tagName === "IMG") {
+            Sentry.captureMessage(`Failed to load image: ${event.target.src}`, "warning");
+          }
+        },
+        true, // useCapture - necessary for resource loading errors
+      );
+    </script>
+  </body>
+</html>
