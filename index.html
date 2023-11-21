@@ -26,7 +26,7 @@
     <h1>Image 404 fallbacks and monitoring on the front end</h1>
 
     <ol>
-      <li>
+      <li id="broken-image-plain">
         <h2>Broken image</h2>
         <p>HTML img element, with a src attribute of an image URL that does not exist.</p>
         <img
@@ -36,7 +36,7 @@
           height="150"
         />
       </li>
-      <li>
+      <li id="broken-object-image-fallback">
         <h2>HTML solution</h2>
         <p>
           HTML object element, with a data attribute of an image URL that does not exist, which
@@ -52,7 +52,7 @@
           <img src="fallback.png" alt="Fallback image" width="150" height="150" />
         </object>
       </li>
-      <li>
+      <li id="broken-image-onerror">
         <h2>Inline JavaScript solution</h2>
         <p>
           Use the onerror attribute to set a fallback image URL when an error is detected. The error
@@ -65,6 +65,14 @@
           height="150"
           onerror="this.src='fallback.png';"
         />
+      </li>
+      <li id="broken-image-dynamically-inserted">
+        <h2>Images inserted via JavaScript</h2>
+        <p>
+          If the image is inserted via javascript you can attach an error listener directly.
+        </p>
+        <button onClick="insertImage()">Insert an image tag</button>
+        <div id="dynamic-images"></div>
       </li>
     </ol>
 
@@ -89,9 +97,10 @@
       Read about capturing resource 404s on the Sentry docs.
     </a>
     <script>
-      // do this if you can't use onerror on img element tags
-      const images = document.querySelectorAll("img");
+      const listItem = document.getElementById("broken-image-plain");
 
+      // do this if you can't use onerror on img element tags
+      const images = listItem.querySelectorAll("img");
       images.forEach((image) => {
         image.addEventListener("error", (event) => {
           image.src = "fallback.png";
@@ -108,6 +117,24 @@
         },
         true, // useCapture - necessary for resource loading errors
       );
+
+      function insertImage() {
+        const destination = document.getElementById("dynamic-images");
+
+        Array.from(destination.children).forEach((child) => {
+          destination.removeChild(child);
+        });
+
+        const image = new Image();
+        image.src = "https://image/150/150";
+        image.alt = "This image should exist, but alas it does not";
+        image.width = "150";
+        image.height = "150";
+        image.addEventListener("error", (event) => {
+          image.src = "fallback.png";
+        });
+        destination.appendChild(image);
+      }
     </script>
   </body>
 </html>
